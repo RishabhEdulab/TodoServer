@@ -1,6 +1,6 @@
 import express, { Response, Request } from "express";
 import { Register } from "../entities/Register";
-import AppDataSource from "../config/DataSource";
+import AppDataSource from "../auth/DataSource";
 import { ObjectId } from "mongodb";
 import cors from "cors";
 import jwt from 'jsonwebtoken'

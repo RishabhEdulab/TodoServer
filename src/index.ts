@@ -1,7 +1,7 @@
 import express, { Response, Request, Application } from "express";
 import dotenv from "dotenv";
 import { resolve } from "path";
-import AppDataSource from "./config/DataSource";
+import AppDataSource from "./auth/DataSource";
 import router from "./routes/EmployeeRoutes"
 import Authrouter from "./routes/Auth";
 AppDataSource.initialize()
