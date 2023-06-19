@@ -1,6 +1,6 @@
 import express, { Response, Request,NextFunction } from "express";
 import { Employee } from "../entities/Employee";
-import AppDataSource from "../auth/DataSource";
+import {AppDataSource,database} from "../auth/DataSource";
 import { ObjectId } from "mongodb";
 import cors from 'cors'
 import jwt from 'jsonwebtoken'
@@ -14,11 +14,12 @@ dotenv.config({path:'../.env'})
 
 const router = express.Router();
 router.use(cors());
+
 const employeeRepsitory = AppDataSource.getRepository(Employee);
 
 
-
-router.get("/Get",verifyToken,TodoController.getTodos);
+//verifyToken
+router.get("/Get",TodoController.getTodos);
 
 router.post("/Insert", TodoController.postTodos);
 

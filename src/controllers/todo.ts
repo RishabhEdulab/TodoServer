@@ -1,12 +1,29 @@
 import express, { Response, Request, NextFunction } from "express";
 import { ObjectId } from "mongodb";
 import { Employee } from "../entities/Employee";
-import AppDataSource from "../auth/DataSource";
+import { AppDataSource } from "../auth/DataSource";
+import { jestDataSource } from "../auth/jest-setup";
+import {NewConnection} from '../utils/NewConnection'
+let jestData = "";
+export const testDatasource = (param: string) => {
+  console.log("param", param);
+
+  jestData = param;
+  return param;
+};
 export default class TodoController {
   static getTodos = async (req: Request, res: Response) => {
-    const employeeRepsitory = AppDataSource.getRepository(Employee);
-    const id = req.query.id;
-    const action = req.query.action;
+    
+    var employeeRepsitory = AppDataSource.getRepository(Employee);
+    const isInializeAppDataSource = AppDataSource.isInitialized;
+    if (isInializeAppDataSource === false) {
+      if (jestData) {
+       await NewConnection()
+        employeeRepsitory = jestDataSource.getRepository(Employee);
+      } 
+    }
+    const id = req.query.id ?? "";
+    const action = req.query.action ?? "";
     console.log(id, action);
 
     if (!id && !action) {
@@ -28,13 +45,22 @@ export default class TodoController {
   };
 
   static postTodos = async (req: Request, resp: Response) => {
-    const employeeRepsitory = AppDataSource.getRepository(Employee);
+    var employeeRepsitory = AppDataSource.getRepository(Employee);
+    const isInializeAppDataSource = AppDataSource.isInitialized;
+    if (isInializeAppDataSource === false) {
+      if (jestData) {
+       await NewConnection()
+        employeeRepsitory = jestDataSource.getRepository(Employee);
+      } 
+    }
+
     try {
       const { name, email, password, age, gender } = req.body;
-
+      console.log("employeeRepsitory", employeeRepsitory);
       const AlredayExistss = await employeeRepsitory.findOne({
         where: { email: email },
       });
+
       if (AlredayExistss) {
         return resp
           .status(200)
@@ -50,13 +76,21 @@ export default class TodoController {
       resp
         .status(201)
         .send({ status: "success", message: "Data Inserted Successfully" });
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
+      console.log(error.message);
     }
   };
   static updateTodo = async (req: Request, resp: Response) => {
+    var employeeRepsitory = AppDataSource.getRepository(Employee);
+    const isInializeAppDataSource = AppDataSource.isInitialized;
+    if (isInializeAppDataSource === false) {
+      if (jestData) {
+       await NewConnection()
+        employeeRepsitory = jestDataSource.getRepository(Employee);
+      } 
+    }
     try {
-      const employeeRepsitory = AppDataSource.getRepository(Employee);
+     
       const { id, name, email, password, age, gender } = req.body;
 
       if (!id || !name || !password || !email || !age || !gender) {
@@ -86,22 +120,33 @@ export default class TodoController {
     }
   };
 
-  static deleteTodo=async (req:Request,res:Response)=>{
-    try{
-        const employeeRepsitory = AppDataSource.getRepository(Employee);
-      const id=req.query.id ??0;
-      console.log("delete id",id);
-      
+  static deleteTodo = async (req: Request, res: Response) => {
+    var employeeRepsitory = AppDataSource.getRepository(Employee);
+    const isInializeAppDataSource = AppDataSource.isInitialized;
+    if (isInializeAppDataSource === false) {
+      if (jestData) {
+       await NewConnection()
+        employeeRepsitory = jestDataSource.getRepository(Employee);
+      } 
+    }
+    try {
+     
+      const id = req.query.id ?? 0;
+      console.log("delete id", id);
+
       const objectId = new ObjectId(String(id));
-      const employeeRemove=await employeeRepsitory.findOneBy({_id:objectId})
-      if(!employeeRemove){
-        return res.status(404).send({ status: "failed", message: "user not found" });
+      const employeeRemove = await employeeRepsitory.findOneBy({
+        _id: objectId,
+      });
+      if (!employeeRemove) {
+        return res
+          .status(404)
+          .send({ status: "failed", message: "user not found" });
       }
-      await employeeRepsitory.remove(employeeRemove)
+      await employeeRepsitory.remove(employeeRemove);
       res.status(200).send({ status: "success", message: "Data is Deleted" });
-    }catch(error)
-    {
-    console.log(error);
+    } catch (error) {
+      console.log(error);
     }
-    }
+  };
 }

@@ -1,17 +1,19 @@
 import express, { Response, Request } from "express";
 import { Register } from "../entities/Register";
-import AppDataSource from "../auth/DataSource";
+import {AppDataSource} from "../auth/DataSource";
 import { ObjectId } from "mongodb";
 import cors from "cors";
 import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv'
+import validation from '../middleware/validation'
+import validated from '../middleware/validationMiddleware'
 dotenv.config({path:'../.env'})
 const Authrouter = express.Router();
 Authrouter.use(cors());
 
 const registerRepository = AppDataSource.getRepository(Register);
 
-Authrouter.post("/register", async (req: Request, res: Response) => {
+Authrouter.post("/register",validated(validation), async (req: Request, res: Response) => {
   try {
     const { name, email, password, age, gender, city, address } = req.body;
     if (!name || !email || !password || !age || !gender || !city || !address) {
@@ -48,7 +50,7 @@ Authrouter.post("/login", async (req: Request, res: Response) => {
     if (!validUser) {
       return res.status(401).send({ status: "failed", message: "invalid" });
     }
-    jwt.sign({ validUser }, String(process.env.JWTKEY), { expiresIn: "2h" }, (err, token) => {
+    jwt.sign( {validUser}, String(process.env.JWTKEY), { expiresIn: "2h" }, (err, token) => {
         if (err) {
           return res.send({
             status: "failed",
@@ -67,4 +69,5 @@ Authrouter.post("/login", async (req: Request, res: Response) => {
     console.log(error);
   }
 });
+
 export default Authrouter;
